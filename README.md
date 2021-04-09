@@ -1,8 +1,8 @@
 
 # Table of contents
 
-15. [Exploring Coroutines](#functional_programming_with_lambdas)
-   1. [The Functional Style](#the_functional_style)
+15. [Exploring Coroutines](#exploring coroutines)
+   1. [Coroutines and Concurrency](#coroutines and concurrency)
    2. [Lambda Expressions](#lambda_expressions)
    3. [Lambdas and Anonymous Functions](#lambdas_and_anonymous_functions)
    4. [Closures and Lexical Scoping](#closures_and_lexical_scoping)
@@ -10,9 +10,23 @@
    6. [Inlining Functions with Lambdas](#inlining_functions_with_lambdas)
    7. [Wrapping Up](#wrapping_up)
 
-## 10. Functional Programming with Lambdas <a name="functional_programming_with_lambdas"></a>
+## 15. Exploring Coroutines <a name="exploring_coroutines"></a>
 
-### 10.1 The Functional Style <a name="the_functional_style"></a>
+### 15.1 Coroutines and Concurrency <a name="the_functional_style"></a>
+
+### 15.2 Running Concurrently Using Coroutines <a name="the_functional_style"></a>
+
+### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
+
+### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
+
+### 15.5 async and await <a name="the_functional_style"></a>
+
+### 15.6 A Peek at Continuations <a name="the_functional_style"></a>
+
+### 15.7 Creating Infinite Sequences <a name="the_functional_style"></a>
+
+### 15. Wrapping Up <a name="the_functional_style"></a>
 
 - Imperative Style: what + how -> the details are in your face all the time
 - Declarative Style: What, not how -> the details are encapsulated in a layer below
