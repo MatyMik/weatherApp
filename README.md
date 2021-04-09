@@ -1,7 +1,7 @@
 
 # Table of contents
 
-10. [Functional Programming with Lambdas](#functional_programming_with_lambdas)
+15. [Exploring Coroutines](#functional_programming_with_lambdas)
    1. [The Functional Style](#the_functional_style)
    2. [Lambda Expressions](#lambda_expressions)
    3. [Lambdas and Anonymous Functions](#lambdas_and_anonymous_functions)
