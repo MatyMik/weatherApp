@@ -14,7 +14,49 @@
 
 ### 15.1 Coroutines and Concurrency <a name="the_functional_style"></a>
 
+- Sequential execution
+- Non-sequential: 
+  - Parallel: When two subroutines run at the same time on different threads.
+  - Concurrent: When two subroutines run on the same thread alternating between them.
+
+#### Coroutines as Cooperating Functions:
+
+Subroutines are more common than coroutines in general-purpose program-
+ming. Subroutines are functions that run to completion before returning to
+the caller. Another call to the same subroutine is as good as the first call;
+subroutines don’t maintain any state between calls. Coroutines are also
+functions but behave differently than subroutines. Unlike subroutines, which
+have a single point of entry, coroutines have multiple points of entry. Addi-
+tionally, coroutines may remember state between calls.
+
 ### 15.2 Running Concurrently Using Coroutines <a name="the_functional_style"></a>
+
+In Kotlin coroutines are first-class citizens. They’re built into the language,
+but the convenience functions to work with coroutines are part of a library.
+Coroutines offer some capabilities that aren’t possible with subroutines.
+They’re used in infinite sequences, event loops, and cooperating functions,
+for example.
+
+```kotlin
+fun task1() {
+println("start task1 in Thread ${Thread.currentThread()}")
+println("end task1 in Thread ${Thread.currentThread()}")
+}
+fun task2() {
+println("start task2 in Thread ${Thread.currentThread()}")
+println("end task2 in Thread ${Thread.currentThread()}")
+}
+println("start")
+run {
+task1()
+task2()
+println("called task1 and task2 from ${Thread.currentThread()}")
+}
+println("done")
+```
+
+#### Starting with Sequential Execution
+
 
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
@@ -26,14 +68,9 @@
 
 ### 15.7 Creating Infinite Sequences <a name="the_functional_style"></a>
 
-### 15. Wrapping Up <a name="the_functional_style"></a>
+### 15. 8 Wrapping Up <a name="the_functional_style"></a>
 
-- Sequential execution
-- Non-sequential: 
-  - Parallel: When two subroutines run at the same time on different threads.
-  - Concurrent: When two subroutines run on the same thread alternating between them.
 
-Coroutines as Cooperating Functions:
 ```kotlin
 var doubleOfEven = mutableListOf<Int>()
 for (i in 1..10) {
