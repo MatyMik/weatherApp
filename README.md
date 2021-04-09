@@ -125,6 +125,28 @@ the completion of the coroutine. And, unlike the runBlocking() function, the
 launch() function returns a job, which can be used to wait on for completion or
 to cancel the task.
 
+```
+start
+called task1 and task2 from Thread[main,5,main]
+start task1 in Thread Thread[main,5,main]
+end task1 in Thread Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+done
+```
+The message that the two tasks were called is printed right after the line with the
+start message. We then see task1() run to completion and then task2(), followed
+by the message done at the end.
+All the code still executes in the main thread, but we can see how the last line
+within the lambda executed before either task1() or task2(). That’s at least a sign
+of concurrency, more than in the previous version.
+
+#### Interleaving Calls with Suspension Points
+
+Kotlin coroutines library comes with suspension points—a function that will suspend
+execution of the current task and let another task execute. There are two functions
+to achieve this in the kotlinx.coroutines library: delay() and yield().
+
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
@@ -138,15 +160,7 @@ to cancel the task.
 ### 15. 8 Wrapping Up <a name="the_functional_style"></a>
 
 
-```kotlin
-var doubleOfEven = mutableListOf<Int>()
-for (i in 1..10) {
-  if (i % 2 == 0) {
-    doubleOfEven.add(i * 2) 
-  }
-}
-println(doubleOfEven) //[4, 8, 12, 16, 20]
-```
+
 
 Functional style:
 ```kotlin
