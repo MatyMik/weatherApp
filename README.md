@@ -37,26 +37,56 @@ Coroutines offer some capabilities that aren’t possible with subroutines.
 They’re used in infinite sequences, event loops, and cooperating functions,
 for example.
 
-```kotlin
-fun task1() {
-println("start task1 in Thread ${Thread.currentThread()}")
-println("end task1 in Thread ${Thread.currentThread()}")
-}
-fun task2() {
-println("start task2 in Thread ${Thread.currentThread()}")
-println("end task2 in Thread ${Thread.currentThread()}")
-}
-println("start")
-run {
-task1()
-task2()
-println("called task1 and task2 from ${Thread.currentThread()}")
-}
-println("done")
-```
 
 #### Starting with Sequential Execution
+```kotlin
+fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
 
+fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+println("start")
+
+run {
+   task1()
+   task2()
+   println("called task1 and task2 from ${Thread.currentThread()}")
+}
+
+println("done")
+```
+The function calls are executing sequentially with task1() completing, 
+then task2() starting and then running to completion.
+
+#### Creating a Coroutine
+```kotlin
+import kotlinx.coroutines.*
+
+fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
+
+fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+println("start")
+
+run {
+   task1()
+   task2()
+   println("called task1 and task2 from ${Thread.currentThread()}")
+}
+
+println("done")
+```
 
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
