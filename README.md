@@ -90,6 +90,26 @@ println("done")
 First is the import from the kotlinx.coroutines.* package. Second, we
 replaced run() with runBlocking(). The runBlocking() function takes a 
 lambda as an argument and executes that within a coroutine.
+
+You have to download it to make it work.
+
+The output of the sequential version of code is the same as the output 
+of the version that uses coroutines.
+
+#### Launching a Task
+Let’s launch the two functions, task1() and task2(), to execute in two different
+coroutines and then display a message that we’ve invoked the tasks. Let’s
+see if that shows any difference from the execution of the sequential version.
+
+```kotlin
+
+runBlocking {
+   launch { task1() }
+   launch { task2() }
+   println("called task1 and task2 from ${Thread.currentThread()}")
+}
+
+```
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
