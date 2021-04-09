@@ -28,12 +28,12 @@
 
 ### 15. Wrapping Up <a name="the_functional_style"></a>
 
-- Imperative Style: what + how -> the details are in your face all the time
-- Declarative Style: What, not how -> the details are encapsulated in a layer below
-  - Functional Style: Declarative style + higher-order functions (they may receive functions as parameters and/or may return functions as a result)
-  We can nicely compose a chain of function calls — known as functional composition — to accomplish tasks, and that leads to fluent and easier-to-understand code.
+- Sequential execution
+- Non-sequential: 
+  - Parallel: When two subroutines run at the same time on different threads.
+  - Concurrent: When two subroutines run on the same thread alternating between them.
 
-Imperative style:
+Coroutines as Cooperating Functions:
 ```kotlin
 var doubleOfEven = mutableListOf<Int>()
 for (i in 1..10) {
