@@ -60,6 +60,15 @@ run {
 
 println("done")
 ```
+```
+start
+start task1 in Thread Thread[main,5,main]
+end task1 in Thread Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+called task1 and task2 from Thread[main,5,main]
+done
+```
 The function calls are executing sequentially with task1() completing, 
 then task2() starting and then running to completion.
 
@@ -110,6 +119,12 @@ runBlocking {
 }
 
 ```
+The launch() function starts a new coroutine to execute the given lambda, much
+like the runBlocking() function does, except the invoking code isn’t blocked for
+the completion of the coroutine. And, unlike the runBlocking() function, the
+launch() function returns a job, which can be used to wait on for completion or
+to cancel the task.
+
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
