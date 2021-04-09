@@ -79,7 +79,7 @@ fun task2() {
 
 println("start")
 
-run {
+runBlocking {
    task1()
    task2()
    println("called task1 and task2 from ${Thread.currentThread()}")
@@ -87,7 +87,9 @@ run {
 
 println("done")
 ```
-
+First is the import from the kotlinx.coroutines.* package. Second, we
+replaced run() with runBlocking(). The runBlocking() function takes a 
+lambda as an argument and executes that within a coroutine.
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
