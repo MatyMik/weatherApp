@@ -345,6 +345,15 @@ java.util.concurrent package. Once we create an executor, using the JDK library,
 we can use Kotlin’s extension functions to get a CoroutineContext from it using
 an asCoroutineDispatcher() function.
 
+You may be tempted to create a dispatcher from the single thread executor
+and pass that directly to launch(), but there’s a catch. If we don’t close the
+executor, our program may never terminate. That’s because there’s an active
+thread in the executor’s pool, in addition to main, and that will keep the JVM
+alive. We need to keep an eye on when all the coroutines complete and then
+close the executor. But that code can become hard to write and error prone.
+Thankfully, there’s a nice use() function that will take care of those steps for
+us.
+
 ```kotlin
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
@@ -399,6 +408,51 @@ thread, but in the instance we hit a time-consuming operation, we may want
 to delegate that to run on a different thread. We can achieve this by using
 the CoroutineContext argument along with a CoroutineStart argument.
 
+To run the coroutine in the current context, you may set the value of the
+second optional argument of launch() to DEFAULT, which is of type CoroutineStart.
+Alternatively, use LAZY to defer execution until an explicit start() is called,
+ATOMIC to run in a non-cancellable mode, and UNDISPATCHED to run initially in
+the current context but switch threads after the suspension point.
+
+```kotlin
+import kotlinx.coroutines.*
+import java.util.concurrent.Executors
+suspend fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
+
+suspend fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+   .asCoroutineDispatcher().use { context ->
+   println("start")
+   runBlocking {
+      @UseExperimental(ExperimentalCoroutinesApi::class)
+      launch(context = context, start = CoroutineStart.UNDISPATCHED) { task1() }
+      launch { task2() }
+      println("called task1 and task2 from ${Thread.currentThread()}")
+   }
+   println("done")
+}
+```
+The CoroutineStart.UNDISPATCHED option is an experimental feature in the 
+kotlinx.coroutines library.
+
+```
+start
+start task1 in Thread Thread[main,5,main]
+end task1 in Thread Thread[pool-1-thread-1,5,main]
+called task1 and task2 from Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+done
+```
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
 
