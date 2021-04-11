@@ -60,11 +60,9 @@ https://elizarov.medium.com/coroutine-context-and-scope-c8b255d59055
 
 | Dispatcher         | Description | Uses                         |
 | -------------------| ----------- | ---------------------------- |
-|Dispatchers.Main    | Main thread | - Calling suspended functions - Call UI functions|
-|Dispatchers.IO      | Disk and    | - Db, other netowrk calls    |
-|                    | netowrk IO  | - File IO                    |
-|Dispatchers.Default | CPU insten- | - Sorting list/other alg     |
-|                    | sive work   | - Parsing JSON               |
+|Dispatchers.Main    | Main thread | - Calling suspended functions<br>- Call UI functions|
+|Dispatchers.IO      | Disk and netowrk IO| - Db, other netowrk calls<br> - File IO|
+|Dispatchers.Default | CPU instensive work  | - Sorting list/other alg<br>- Parsing JSON|
 
 CoroutineContext
 It is simply a map between Key and Element (Key -> Element) where
