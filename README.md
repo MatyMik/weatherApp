@@ -14,28 +14,92 @@
 
 ### 15.1 Coroutines and Concurrency <a name="the_functional_style"></a>
 
-- Sequential execution
+- Sequential execution: Execute task one after the other
 - Non-sequential: 
-  - Parallel: When two subroutines run at the same time on different threads.
-  - Concurrent: When two subroutines run on the same thread alternating between them.
+  - Parallel: When two tasks run at the same time on different threads.
+  - Concurrent: When two tasks run on the same thread alternating between them.
 
 #### Coroutines as Cooperating Functions:
 
 Subroutines are more common than coroutines in general-purpose program-
 ming. Subroutines are functions that run to completion before returning to
-the caller. Another call to the same subroutine is as good as the first call;
-subroutines don’t maintain any state between calls. Coroutines are also
-functions but behave differently than subroutines. Unlike subroutines, which
-have a single point of entry, coroutines have multiple points of entry. Addi-
-tionally, coroutines may remember state between calls.
+the caller. Subroutines don’t maintain any state between calls. 
+Coroutines are also functions but behave differently than subroutines. 
+Unlike subroutines, which have a single point of entry, coroutines have 
+multiple points of entry. Additionally, coroutines may remember state between calls.
+
+
+#### Basics of coroutines
+
+The two most important building blocks to create/start/run new coroutines 
+are coroutine scope and coroutine builders. Coroutine scope consists of 
+all the machinery required to run coroutine, for example, it knows where 
+(on which thread) to run coroutine and coroutine builders are used to 
+create a new coroutine.
+
+public interface CoroutineScope {
+    public val coroutineContext: CoroutineContext
+}
+
+Coroutine context is immutable, but you can add elements to a context 
+using plus operator, just like you add elements to a set, producing a new context instance.
+A coroutine itself is represented by a Job. It is responsible for coroutine’s 
+lifecycle, cancellation, and parent-child relations. A current job can be 
+retrieved from a current coroutine’s context: coroutineContext[Job]
+
+The important thing you need to know is that whenever a new coroutine scope 
+is created, a new job gets created and gets associated with it.
+
+There is also an interface called CoroutineScope that consists 
+of a sole property — val coroutineContext: CoroutineContext. It 
+has nothing else but a context. So, why it exists and how is it 
+different from a context itself? The difference between a context 
+and a scope is in their intended purpose. I swear I tried to understand 
+this but it's difficult:
+https://elizarov.medium.com/coroutine-context-and-scope-c8b255d59055
+
+| Dispatcher         | Description | Uses                         |
+| -------------------| ----------- | ---------------------------- |
+|Dispatchers.Main    | Main thread | - Calling suspended functions|
+|                    |             | - Call UI functions          |
+| ------------------ | ----------- | ---------------------------- |
+|Dispatchers.IO      | Disk and    | - Db, other netowrk calls    |
+|                    | netowrk IO  | - File IO                    |
+| -------------------| ----------- | ---------------------------- |
+|Dispatchers.Default | CPU insten- | - Sorting list/other alg     |
+|                    | sive work   | - Parsing JSON               |
+| ------------------ | ----------- | ---------------------------- |
+
+CoroutineContext
+It is simply a map between Key and Element (Key -> Element) where
+Key: Key for the elements of type CoroutineContext
+Element: Subtype of CoroutineContext, for example, Job, Deferred, CoroutineDispacher, ActorCoroutine, etc.
+
+Launch
+This creates new coroutine and returns a reference to coroutine as Job.
+Launch is used to perform asynchronous fire and forget type of operations 
+where you are not interested in the result of operation.
+
+Async
+This creates new coroutine and returns a reference to coroutine as Deferred. 
+Using this handle, you can manually cancel launched coroutine using the 
+cancel method available on Deferred. Async is used to perform asynchronous 
+computation where you expect a result of the computation in the future. Once 
+the result is available, you want to perform other operations using this result.
+
+What is the default behavior of launch and async?
+The execution of coroutine starts immediately
+You can override this behavior by passing the different CoroutineStart 
+argument while launching coroutine, for example, start = CoroutineStart.LAZY
+
+Reasons for CPU-bpund IO and default: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
 
 ### 15.2 Running Concurrently Using Coroutines <a name="the_functional_style"></a>
 
-In Kotlin coroutines are first-class citizens. They’re built into the language,
-but the convenience functions to work with coroutines are part of a library.
-Coroutines offer some capabilities that aren’t possible with subroutines.
-They’re used in infinite sequences, event loops, and cooperating functions,
-for example.
+In Kotlin coroutines are built into the language, but the convenience functions to 
+work with coroutines are part of a library. Coroutines offer some capabilities that 
+aren’t possible with subroutines. They’re used in infinite sequences, event loops, 
+and cooperating functions, for example.
 
 
 #### Starting with Sequential Execution
@@ -73,6 +137,9 @@ The function calls are executing sequentially with task1() completing,
 then task2() starting and then running to completion.
 
 #### Creating a Coroutine
+
+As stated previously, you need to donwload an extension library to work 
+with coroutines. It is available as a Maven Package.
 ```kotlin
 import kotlinx.coroutines.*
 
@@ -100,15 +167,13 @@ First is the import from the kotlinx.coroutines.* package. Second, we
 replaced run() with runBlocking(). The runBlocking() function takes a 
 lambda as an argument and executes that within a coroutine.
 
-You have to download it to make it work.
-
 The output of the sequential version of code is the same as the output 
 of the version that uses coroutines.
 
 #### Launching a Task
+
 Let’s launch the two functions, task1() and task2(), to execute in two different
-coroutines and then display a message that we’ve invoked the tasks. Let’s
-see if that shows any difference from the execution of the sequential version.
+coroutines and then display a message that we’ve invoked the tasks. 
 
 ```kotlin
 
@@ -143,7 +208,7 @@ of concurrency, more than in the previous version.
 
 #### Interleaving Calls with Suspension Points
 
-Kotlin coroutines library comes with suspension points—a function that will suspend
+Kotlin coroutines library comes with suspension points — a function that will suspend
 execution of the current task and let another task execute. There are two functions
 to achieve this in the kotlinx.coroutines library: delay() and yield().
 
@@ -321,6 +386,25 @@ start task2 in Thread Thread[main,5,main]
 end task2 in Thread Thread[main,5,main]
 done
 ```
+Changing from a single thread to as many as your system can provide:
+
+```kotlin
+Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { context ->
+```
+```kotlin
+Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
+.asCoroutineDispatcher().use { context ->
+```
+
+#### Switching Threads After Suspension Points
+
+What if you want a coroutine to start in the context of the caller but switch
+to a different thread after the suspension point? In other words, as long as
+the task involves quick computations, you may want to do that in the current
+thread, but in the instance we hit a time-consuming operation, we may want
+to delegate that to run on a different thread. We can achieve this by using
+the CoroutineContext argument along with a CoroutineStart argument.
+
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
 
