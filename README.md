@@ -147,7 +147,122 @@ Kotlin coroutines library comes with suspension points—a function that will su
 execution of the current task and let another task execute. There are two functions
 to achieve this in the kotlinx.coroutines library: delay() and yield().
 
+The delay() function will pause the currently executing task for the duration
+of milliseconds specified. The yield() method doesn’t result in any explicit
+delays. But both these methods will give an opportunity for another pending
+task to execute.
+
+The yield() function is like the nice command in Unix-like systems. By being
+nice you may lower your processes priority on these systems. In Kotlin, your
+task can be nice, using yield(), to other tasks that may have more important
+things to do.
+
+Kotlin will permit the use of suspension points only in functions that are annotated 
+with the suspend keyword. Marking a function with suspend doesn’t automatically make 
+the function run in a coroutine or concurrently, however.
+
+```kotlin
+import kotlinx.coroutines.*
+
+suspend fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
+
+suspend fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+println("start")
+
+runBlocking {
+   launch { task1() }
+   launch { task2() }
+   println("called task1 and task2 from ${Thread.currentThread()}")
+}
+
+println("done")
+```
+
+```
+start
+called task1 and task2 from Thread[main,5,main]
+start task1 in Thread Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task1 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+done
+```
+
+The examples illustrated the behavior of coroutines, but it leaves us with the
+question, When will we use them? Suppose we have multiple tasks that can’t
+be run in parallel, maybe due to potential contention of shared resources
+used by them. Running the tasks sequentially one after the other may end
+up starving all but a few tasks. Sequential execution is especially not desirable
+if the tasks are long running or never ending. In such cases, we may let
+multiple tasks run cooperatively, using coroutines, and make steady progress
+on all tasks. We can also use coroutines to build an unbounded stream of
+data—see Creating Infinite Sequences, on page 303.
+
 ### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
+
+The call to the launch() and runBlocking() functions resulted in the coroutines
+executing in the same thread as the caller’s coroutine scope.
+
+#### Explicitly Setting a Context
+
+You may pass a CoroutineContext to the launch() and runBlocking() functions to set
+the execution context of the coroutines these functions start.
+The value of Dispatchers.Default for the argument of type CoroutineContext instructs
+the coroutine that is started to execute in a thread from a DefaultDispatcher pool.
+The number of threads in this pool is either 2 or equal to the number of cores
+on the system, whichever is higher. This pool is intended to run computation-
+ally intensive tasks.
+The value of Dispatchers.IO can be used to execute coroutines in a pool that is
+dedicated to running IO intensive tasks. That pool may grow in size if threads
+are blocked on IO and more tasks are created.
+
+
+```kotlin
+import kotlinx.coroutines.*
+
+suspend fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
+
+suspend fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+println("start")
+
+runBlocking {
+   launch(Dispatchers.Default) { task1() }
+   launch { task2() }
+   println("called task1 and task2 from ${Thread.currentThread()}")
+}
+
+println("done")
+```
+
+```
+start
+called task1 and task2 from Thread[main,5,main]
+start task1 in Thread Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task1 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+done
+```
+
+https://pl.kotl.in/6LUQIGFeZ
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
 
