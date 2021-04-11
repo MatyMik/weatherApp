@@ -454,6 +454,28 @@ end task2 in Thread Thread[main,5,main]
 done
 ```
 
+#### Changing the CoroutineContext
+
+To start a coroutine in one context and then change the context midway, 
+Kotlin has a function: withContext().
+
+```kotlin
+runBlocking {
+   println("starting in Thread ${Thread.currentThread()}")
+   withContext(Dispatchers.Default) { task1() }
+   launch { task2() }
+   println("ending in Thread ${Thread.currentThread()}")
+}
+```
+```
+starting in Thread Thread[main,5,main]
+start task1 in Thread Thread[DefaultDispatcher-worker-1,5,main]
+end task1 in Thread Thread[DefaultDispatcher-worker-1,5,main]
+ending in Thread Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+```
+
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
 
 ### 15.5 async and await <a name="the_functional_style"></a>
@@ -518,8 +540,12 @@ fun isPrime(n: Int) = n > 1 && (2 until n).none({ i: Int -> n % i == 0 })
 
 none method uses parametric type T which is specialized to Int in this context. Thus, we can drop the type from the lambda’s parameter list:
 ```kotlin
-fun isPrime(n: Int) = n > 1 && (2 until n).none({ i -> n % i == 0 })
-//                             ^^^IntRange ^^^none(predicate: (Int) -> Boolean): Boolean
+runBlocking {
+   println("starting in Thread ${Thread.currentThread()}")
+   withContext(Dispatchers.Default) { task1() }
+   launch { task2() }
+   println("ending in Thread ${Thread.currentThread()}")
+}
 ```
 
 Since the version of none() we’re using takes only one parameter, we can drop the parenthesis () in the call:
