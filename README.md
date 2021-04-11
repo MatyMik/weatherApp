@@ -254,15 +254,73 @@ println("done")
 
 ```
 start
+start task1 in Thread Thread[DefaultDispatcher-worker-1,5,main]
+end task1 in Thread Thread[DefaultDispatcher-worker-2,5,main]
 called task1 and task2 from Thread[main,5,main]
-start task1 in Thread Thread[main,5,main]
 start task2 in Thread Thread[main,5,main]
-end task1 in Thread Thread[main,5,main]
 end task2 in Thread Thread[main,5,main]
 done
 ```
 
 https://pl.kotl.in/6LUQIGFeZ
+
+
+After this change, the code in task1() will run in a different thread than the
+rest of the code that still runs in the main thread. In this case, the code within 
+the lambda passes to runBlocking(), and the code within task2() runs concurrently, 
+but the code within task1() is running in parallel.
+Coroutines may execute concurrently or in parallel, depending on their context.
+
+#### Running in a Custom Pool
+
+You know how to set a context explicitly, but the context we used in the pre-
+vious example was the built-in DefaultDispatcher. If you’d like to run your
+coroutines in your own single thread pool, you can do that as well. Since
+you’ll have a single thread in the pool, the coroutines using this context will
+run concurrently instead of in parallel. This is a good option if you’re con-
+cerned about resource contention among the tasks executing as coroutines.
+
+To set a single thread pool context, we first have to create a single thread
+executor. For this we can use the JDK Executors concurrency API from the
+java.util.concurrent package. Once we create an executor, using the JDK library,
+we can use Kotlin’s extension functions to get a CoroutineContext from it using
+an asCoroutineDispatcher() function.
+
+```kotlin
+import kotlinx.coroutines.*
+import java.util.concurrent.Executors
+
+suspend fun task1() {
+   println("start task1 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task1 in Thread ${Thread.currentThread()}")
+}
+
+suspend fun task2() {
+   println("start task2 in Thread ${Thread.currentThread()}")
+   yield()
+   println("end task2 in Thread ${Thread.currentThread()}")
+}
+
+Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { context ->
+   println("start")
+   runBlocking {
+      launch(context) { task1() }
+      launch { task2() }
+      println("called task1 and task2 from ${Thread.currentThread()}")
+   }
+   println("done")
+}
+```
+```
+start
+start task1 in Thread Thread[pool-1-thread-1,5,main]
+end task1 in Thread Thread[pool-1-thread-1,5,main]
+called task1 and task2 from Thread[main,5,main]
+start task2 in Thread Thread[main,5,main]
+end task2 in Thread Thread[main,5,main]
+done
+```
 
 ### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
 
