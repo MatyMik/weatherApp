@@ -29,6 +29,17 @@ Coroutines are also functions but behave differently than subroutines.
 Unlike subroutines, which have a single point of entry, coroutines have 
 multiple points of entry. Additionally, coroutines may remember state between calls.
 
+#### Why coroutines
+
+Tasks that are long running or very resource consuming can block the main thread and 
+make your app/website unresponsive. Through coroutines you can chunk your tasks into 
+smaller pieces and even delegate them to worker threads. Normally running a task in
+coroutines does not automatically mean new thread, only that the app is responsive.
+
+The way Java (and most other programming languages) solved waiting for tasks to complete 
+was to use callbacks. This quickly grows into callback hell. Another possibility is RxJava,
+which is better but requires to learn a completely new API. Coroutines solve both problems 
+as they are integrated into the language.
 
 #### Basics of coroutines
 
@@ -189,6 +200,13 @@ lambda as an argument and executes that within a coroutine.
 
 The output of the sequential version of code is the same as the output 
 of the version that uses coroutines.
+
+##### Extra
+You can't simply run coroutines from any function. There has to be an entry point to
+coroutines, which in this case the runBlocking function. Ironically it is discouraged
+to use, because one of the cornerstones of coroutines is to make the main function unblocked
+and runBlocking does exactly the opposite. This here is just for educational purposes (I guess).
+Normally the entrypoint to coroutines is the launch function, that we use in the book too.
 
 #### Launching a Task
 
