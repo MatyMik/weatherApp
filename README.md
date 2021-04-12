@@ -247,14 +247,16 @@ Coroutine scope consists of all the machinery required to run coroutine, for
 example, it knows where (on which thread) to run coroutine and coroutine 
 builders are used to create a new coroutine.
 
+```JAVA
 public interface CoroutineScope {
     public val coroutineContext: CoroutineContext
 }
+```
 
-Job — controls the lifecycle of the coroutine.
-CoroutineDispatcher (default is Dispatchers.Default) — dispatches work to the appropriate thread.
-CoroutineName (optional, default is “coroutine”) — name of the coroutine, useful for debugging.
-CoroutineExceptionHandler (optional) — handles uncaught exceptions.
+ - Job — controls the lifecycle of the coroutine.
+ - CoroutineDispatcher (default is Dispatchers.Default) — dispatches work to the appropriate thread.
+ - CoroutineName (optional, default is “coroutine”) — name of the coroutine, useful for debugging.
+ - CoroutineExceptionHandler (optional) — handles uncaught exceptions.
 
 Coroutine context is immutable, but you can add elements to a context 
 using plus operator, just like you add elements to a set, producing a new context instance.
