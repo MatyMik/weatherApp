@@ -1,18 +1,19 @@
 
 # Table of contents
 
-15. [Exploring Coroutines](#exploring coroutines)
-   1. [Coroutines and Concurrency](#coroutines and concurrency)
-   2. [Lambda Expressions](#lambda_expressions)
-   3. [Lambdas and Anonymous Functions](#lambdas_and_anonymous_functions)
-   4. [Closures and Lexical Scoping](#closures_and_lexical_scoping)
-   5. [Non-Local and Labeled return](#non-local_and_labeled_return)
-   6. [Inlining Functions with Lambdas](#inlining_functions_with_lambdas)
-   7. [Wrapping Up](#wrapping_up)
+15. [Exploring Coroutines](#exploring_coroutines)
+   1. [Coroutines and Concurrency](#coroutines_and_concurrency)
+   2. [Running Concurrently Using Coroutines](#running_concurrently_using_coroutines)
+   3. [Coroutine Context and Threads](#coroutine_context_and_threads)
+   4. [Debugging Coroutines](#debugging_coroutines)
+   5. [async and await](#non-async_and_await)
+   6. [A Peek at Continuations](#peek_at_continuations)
+   7. [Creating Infinite Sequences](#creating_infinite_sequence)
+   8. [Wrapping Up](#wrapping_up)
 
 ## 15. Exploring Coroutines <a name="exploring_coroutines"></a>
 
-### 15.1 Coroutines and Concurrency <a name="the_functional_style"></a>
+### 15.1 Coroutines and Concurrency <a name="coroutines_and_concurrency"></a>
 
 - Sequential execution: Execute task one after the other
 - Non-sequential: 
@@ -113,7 +114,7 @@ are suspended. Unlike the Dispatchers we talked about in part one,
 it doesn’t actually execute your coroutines — it just makes sure you 
 don’t lose track of them.
 
-### 15.2 Running Concurrently Using Coroutines <a name="the_functional_style"></a>
+### 15.2 Running Concurrently Using Coroutines <a name="running_concurrently_using_coroutines"></a>
 
 In Kotlin coroutines are built into the language, but the convenience functions to 
 work with coroutines are part of a library. Coroutines offer some capabilities that 
@@ -291,7 +292,7 @@ multiple tasks run cooperatively, using coroutines, and make steady progress
 on all tasks. We can also use coroutines to build an unbounded stream of
 data—see Creating Infinite Sequences, on page 303.
 
-### 15.3 Coroutine Context and Threads <a name="the_functional_style"></a>
+### 15.3 Coroutine Context and Threads <a name="coroutine_context_and_threads"></a>
 
 The call to the launch() and runBlocking() functions resulted in the coroutines
 executing in the same thread as the caller’s coroutine scope.
@@ -505,7 +506,7 @@ The question here is whether did withContext() really change the
 context of the currently executing coroutine or did it merely create an
 entirely new coroutine?
 
-### 15.4 Debugging Coroutines <a name="the_functional_style"></a>
+### 15.4 Debugging Coroutines <a name="debugging_coroutines"></a>
 
 Kotlin provides a command-line option -Dkotlinx.coroutines.debug to display the
 details of the coroutine executing a function.
@@ -538,7 +539,7 @@ end task2 in Thread Thread[DefaultDispatcher-worker-3 @task runner#2,5,main]
 running in Thread Thread[main @top#1,5,main]
 ```
 
-### 15.5 async and await <a name="the_functional_style"></a>
+### 15.5 async and await <a name="async_and_await"></a>
 If you want to execute a task asynchronously and get the response, 
 then use async() instead of launch(). The async() function takes the 
 same parameters as launch(). The difference, though, is that async() returns a
@@ -550,14 +551,14 @@ concurrently. The call to await() will eventually return the result of the corou
 started using async(). If the coroutine started using async() throws an exception,
 then that exception will be propagated to the caller through the call to await().
 
-### 15.6 A Peek at Continuations <a name="the_functional_style"></a>
+### 15.6 A Peek at Continuations <a name="peek_at_continuations"></a>
 
 We are going to examine Java bytecode
 
 
-### 15.7 Creating Infinite Sequences <a name="the_functional_style"></a>
+### 15.7 Creating Infinite Sequences <a name="creating_infinite_sequence"></a>
 
-### 15. 8 Wrapping Up <a name="the_functional_style"></a>
+### 15. 8 Wrapping Up <a name="wrapping_up"></a>
 
 
 
