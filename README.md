@@ -327,9 +327,6 @@ end task2 in Thread Thread[main,5,main]
 done
 ```
 
-https://pl.kotl.in/6LUQIGFeZ
-
-
 After this change, the code in task1() will run in a different thread than the
 rest of the code that still runs in the main thread. In this case, the code within 
 the lambda passes to runBlocking(), and the code within task2() runs concurrently, 
@@ -559,9 +556,6 @@ We are going to examine Java bytecode to see how the context and all the data
 is kept between suspension and thread changes.
 
 ```kotlin
-
-```
-```
 import kotlinx.coroutines.*
 
 class Compute {
@@ -598,10 +592,102 @@ returning the same.
 2, returning 4: Thread: Thread[DefaultDispatcher-worker-4,5,main]
 ```
 
+The Java bytecode that is interesting for our purposes:
+```
+public final long compute1(long);
+public final java.lang.Object compute2(long,
+   kotlin.coroutines.Continuation<? super java.lang.Long>);
+```
+Even though in the source code compute2()
+only took one parameter, in the compiled version we see that it takes two
+parameters: long and Continuation<?superLong>. Furthermore, it returns Object instead
+of long. The Continuation encapsulates the results of the partial execution of the
+function so that the result can be delivered to the caller using the Continuation
+callback.
+
 ### 15.7 Creating Infinite Sequences <a name="creating_infinite_sequence"></a>
 
-### 15. 8 Wrapping Up <a name="wrapping_up"></a>
+A function may create a value in the series and yield it to the
+code that is expecting the value. Upon consuming the value, the calling code
+can come back asking for the next value in the series. These steps can continue
+in tandem until either the code that produces the series exits or the caller doesn’t
+ask for another value in the series.
 
+```kotlin
+fun primes(start: Int): Sequence<Int> = sequence {
+   println("Starting to look")
+   var index = start
+   while (true) {
+      if (index > 1 && (2 until index).none { i -> index % i == 0 }) {
+         yield(index)
+         println("Generating next after $index")
+      }
+      index++
+   }
+}
+
+for (prime in primes(start = 17)) {
+   println("Received $prime")
+   if (prime > 30) break
+}
+```
+Within the lambda passed to the sequence() function, we look for the next prime
+value and yield it using a yield() method—this one is part of the standard
+library and is different from the yield() we used from the kotlinx.coroutines library.
+
+```
+Starting to look
+Received 17
+Generating next after 17
+Received 19
+...
+```
+
+#### Using the iterator function
+```kotlin
+operator fun ClosedRange<String>.iterator() = object: Iterator<String> {
+   private val next = StringBuilder(start)
+   private val last = endInclusive
+   override fun hasNext() =
+      last >= next.toString() && last.length >= next.length
+   override fun next(): String {
+      val result = next.toString()
+      val lastCharacter = next.last()
+      if (lastCharacter < Char.MAX_VALUE) {
+         next.setCharAt(next.length - 1, lastCharacter + 1)
+      } else {
+      next.append(Char.MIN_VALUE)
+      }
+      return result
+   }
+}
+```
+
+
+```kotlin
+operator fun ClosedRange<String>.iterator(): Iterator<String> = iterator {
+   val next = StringBuilder(start)
+   val last = endInclusive
+   while (last >= next.toString() && last.length >= next.length) {
+      val result = next.toString()
+      val lastCharacter = next.last()
+      if (lastCharacter < Char.MAX_VALUE) {
+         next.setCharAt(next.length - 1, lastCharacter + 1)
+      } else {
+         next.append(Char.MIN_VALUE)
+      }
+      yield(result)
+   }
+}
+```
+
+### 15. 8 Wrapping Up <a name="wrapping_up"></a>
+- functions with multiple entry points
+- carry state between invocations
+- can call into each other and resume execution from where they left off
+- may yield the flow of control to other pending tasks
+- can change the thread of execution of coroutines
+- using async() and await(), perform tasks in parallel and receive the result in the future
 
 My questions:
 - When a coroutine is suspended, how is it decided which is the most important next job that has to run?
