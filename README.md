@@ -22,8 +22,8 @@
 
 #### Coroutines as Cooperating Functions:
 
-Subroutines are more common than coroutines in general-purpose program-
-ming. Subroutines are functions that run to completion before returning to
+Subroutines are more common than coroutines in general-purpose programming. 
+Subroutines are functions that run to completion before returning to
 the caller. Subroutines don’t maintain any state between calls. 
 Coroutines are also functions but behave differently than subroutines. 
 Unlike subroutines, which have a single point of entry, coroutines have 
