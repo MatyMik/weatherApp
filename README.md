@@ -228,7 +228,7 @@ up starving all but a few tasks. Sequential execution is especially not desirabl
 if the tasks are long running or never ending. In such cases, we may let
 multiple tasks run cooperatively, using coroutines, and make steady progress
 on all tasks. We can also use coroutines to build an unbounded stream of
-data—see Creating Infinite Sequences, on page 303.
+data — likeCreating Infinite Sequences
 
 ### 15.3 Coroutine Context and Threads <a name="coroutine_context_and_threads"></a>
 
