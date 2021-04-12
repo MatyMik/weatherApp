@@ -35,95 +35,15 @@ Tasks that are long running or very resource consuming can block the main thread
 make your app/website unresponsive. Through coroutines you can chunk your tasks into 
 smaller pieces and even delegate them to worker threads. Normally running a task in
 coroutines does not automatically mean new thread, only that the app is responsive.
+In fact, it’s a really good idea to run coroutines in the main thread when launching 
+a coroutine in response to a UI event — that way, if you don’t end up doing a 
+long running task that requires main-safety, the result can be available in the 
+very next frame for the user.
 
 The way Java (and most other programming languages) solved waiting for tasks to complete 
 was to use callbacks. This quickly grows into callback hell. Another possibility is RxJava,
 which is better but requires to learn a completely new API. Coroutines solve both problems 
 as they are integrated into the language.
-
-#### Basics of coroutines
-
-Coroutines must run in a CoroutineScope, which is used to keep track of 
-all the coroutines, and it can cancel all of the coroutines started in 
-it. When a scope cancels, all of its coroutines cancel. CoroutinesScope 
-propagates itself — new coroutines started by your coroutines will have 
-the same scope.
-
-The two most important building blocks to create/start/run new coroutines 
-are coroutine scope and coroutine builders. Coroutine scope consists of 
-all the machinery required to run coroutine, for example, it knows where 
-(on which thread) to run coroutine and coroutine builders are used to 
-create a new coroutine.
-
-public interface CoroutineScope {
-    public val coroutineContext: CoroutineContext
-}
-
-Job — controls the lifecycle of the coroutine.
-CoroutineDispatcher (default is Dispatchers.Default) — dispatches work to the appropriate thread.
-CoroutineName (optional, default is “coroutine”) — name of the coroutine, useful for debugging.
-CoroutineExceptionHandler (optional) — handles uncaught exceptions.
-
-Coroutine context is immutable, but you can add elements to a context 
-using plus operator, just like you add elements to a set, producing a new context instance.
-A coroutine itself is represented by a Job. It is responsible for coroutine’s 
-lifecycle, cancellation, and parent-child relations. A current job can be 
-retrieved from a current coroutine’s context: coroutineContext[Job]
-
-The important thing you need to know is that whenever a new coroutine scope 
-is created, a new job gets created and gets associated with it.
-
-There is also an interface called CoroutineScope that consists 
-of a sole property — val coroutineContext: CoroutineContext. It 
-has nothing else but a context. So, why it exists and how is it 
-different from a context itself? The difference between a context 
-and a scope is in their intended purpose. I swear I tried to understand 
-this but it's difficult:
-https://elizarov.medium.com/coroutine-context-and-scope-c8b255d59055
-
-| Dispatcher         | Description | Uses                         |
-| -------------------| ----------- | ---------------------------- |
-|Dispatchers.Main    | Main thread | - Calling suspended functions<br>- Call UI functions|
-|Dispatchers.IO      | Disk and netowrk IO| - Db, other netowrk calls<br> - File IO|
-|Dispatchers.Default | CPU instensive work  | - Sorting list/other alg<br>- Parsing JSON|
-
-CoroutineContext
-It is simply a map between Key and Element (Key -> Element) where
-Key: Key for the elements of type CoroutineContext
-Element: Subtype of CoroutineContext, for example, Job, Deferred, CoroutineDispacher, ActorCoroutine, etc.
-
-Launch
-This creates new coroutine and returns a reference to coroutine as Job.
-Launch is used to perform asynchronous fire and forget type of operations 
-where you are not interested in the result of operation.
-
-Async
-This creates new coroutine and returns a reference to coroutine as Deferred. 
-Using this handle, you can manually cancel launched coroutine using the 
-cancel method available on Deferred. Async is used to perform asynchronous 
-computation where you expect a result of the computation in the future. Once 
-the result is available, you want to perform other operations using this result.
-
-What is the default behavior of launch and async?
-The execution of coroutine starts immediately
-You can override this behavior by passing the different CoroutineStart 
-argument while launching coroutine, for example, start = CoroutineStart.LAZY
-
-Reasons for CPU-bpund IO and default: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
-
-Using suspend doesn’t tell Kotlin to run a function on a background thread. 
-It’s worth saying clearly and often that coroutines will run on the main thread. 
-In fact, it’s a really good idea to use Dispatchers.Main.immediate when launching 
-a coroutine in response to a UI event — that way, if you don’t end up doing a 
-long running task that requires main-safety, the result can be available in the 
-very next frame for the user.
-
-Coroutines can suspend themselves, and the dispatcher is the thing that knows how to resume them.
-In Kotlin, coroutines must run in something called a CoroutineScope. 
-A CoroutineScope keeps track of your coroutines, even coroutines that 
-are suspended. Unlike the Dispatchers we talked about in part one, 
-it doesn’t actually execute your coroutines — it just makes sure you 
-don’t lose track of them.
 
 ### 15.2 Running Concurrently Using Coroutines <a name="running_concurrently_using_coroutines"></a>
 
@@ -315,6 +235,38 @@ data—see Creating Infinite Sequences, on page 303.
 The call to the launch() and runBlocking() functions resulted in the coroutines
 executing in the same thread as the caller’s coroutine scope.
 
+#####
+
+Coroutines must run in a CoroutineScope, which is used to keep track of 
+all the coroutines, and it can cancel all of the coroutines started in 
+it. When a scope cancels, all of its coroutines cancel. CoroutinesScope 
+propagates itself — new coroutines started by your coroutines will have 
+the same scope.
+
+Coroutine scope consists of all the machinery required to run coroutine, for 
+example, it knows where (on which thread) to run coroutine and coroutine 
+builders are used to create a new coroutine.
+
+public interface CoroutineScope {
+    public val coroutineContext: CoroutineContext
+}
+
+Job — controls the lifecycle of the coroutine.
+CoroutineDispatcher (default is Dispatchers.Default) — dispatches work to the appropriate thread.
+CoroutineName (optional, default is “coroutine”) — name of the coroutine, useful for debugging.
+CoroutineExceptionHandler (optional) — handles uncaught exceptions.
+
+Coroutine context is immutable, but you can add elements to a context 
+using plus operator, just like you add elements to a set, producing a new context instance.
+A coroutine itself is represented by a Job.
+
+The important thing you need to know is that whenever a new coroutine scope 
+is created, a new job gets created and gets associated with it.
+
+The difference between a context and a scope is in their intended purpose. I swear I tried to understand 
+this but it's difficult: 
+https://elizarov.medium.com/coroutine-context-and-scope-c8b255d59055
+
 #### Explicitly Setting a Context
 
 You may pass a CoroutineContext to the launch() and runBlocking() functions to set
@@ -327,6 +279,16 @@ ally intensive tasks.
 The value of Dispatchers.IO can be used to execute coroutines in a pool that is
 dedicated to running IO intensive tasks. That pool may grow in size if threads
 are blocked on IO and more tasks are created.
+
+| Dispatcher         | Description | Uses                         |
+| -------------------| ----------- | ---------------------------- |
+|Dispatchers.Main    | Main thread | - Calling suspended functions<br>- Call UI functions|
+|Dispatchers.IO      | Disk and netowrk IO| - Db, other netowrk calls<br> - File IO|
+|Dispatchers.Default | CPU instensive work  | - Sorting list/other alg<br>- Parsing JSON|
+
+Reasons for CPU-bpund IO and default: https://gist.github.com/djspiewak/46b543800958cf61af6efa8e072bfd5c
+
+Coroutines can suspend themselves, and the dispatcher is the thing that knows how to resume them.
 
 
 ```kotlin
@@ -558,6 +520,7 @@ running in Thread Thread[main @top#1,5,main]
 ```
 
 ### 15.5 async and await <a name="async_and_await"></a>
+
 If you want to execute a task asynchronously and get the response, 
 then use async() instead of launch(). The async() function takes the 
 same parameters as launch(). The difference, though, is that async() returns a
@@ -569,15 +532,82 @@ concurrently. The call to await() will eventually return the result of the corou
 started using async(). If the coroutine started using async() throws an exception,
 then that exception will be propagated to the caller through the call to await().
 
+```kotlin
+import kotlinx.coroutines.*
+
+runBlocking {
+   val count: Deferred<Int> = async(Dispatchers.Default) {
+   println("fetching in ${Thread.currentThread()}")
+   Runtime.getRuntime().availableProcessors()
+}
+
+println("Called the function in ${Thread.currentThread()}")
+
+println("Number of cores is ${count.await()}")
+}
+```
+
+```
+Called the function in Thread[main,5,main]
+fetching in Thread[DefaultDispatcher-worker-1,5,main]
+Number of cores is 8
+```
+
 ### 15.6 A Peek at Continuations <a name="peek_at_continuations"></a>
 
-We are going to examine Java bytecode
+We are going to examine Java bytecode to see how the context and all the data
+is kept between suspension and thread changes.
 
+```kotlin
+
+```
+```
+import kotlinx.coroutines.*
+
+class Compute {
+   fun compute1(n: Long): Long = n * 2
+   suspend fun compute2(n: Long): Long {
+      val factor = 2
+      println("$n received : Thread: ${Thread.currentThread()}")
+      delay(n * 1000)
+      val result = n * factor
+      println("$n, returning $result: Thread: ${Thread.currentThread()}")
+      return result
+   }
+}
+
+fun main() = runBlocking<Unit> {
+   val compute = Compute()
+   launch(Dispatchers.Default) {
+      compute.compute2(2)
+   }
+   launch(Dispatchers.Default) {
+      compute.compute2(1)
+   }
+}
+```
+We assign a single expression function to the main() function with a call to runBlock-
+ing<Unit>. So far we used only runBlocking() without the parametric Unit, but since
+the return type of main() is Unit, we have to convey that the call to runBlocking() is
+returning the same.
+
+```
+2 received : Thread: Thread[DefaultDispatcher-worker-1,5,main]
+1 received : Thread: Thread[DefaultDispatcher-worker-2,5,main]
+1, returning 2: Thread: Thread[DefaultDispatcher-worker-2,5,main]
+2, returning 4: Thread: Thread[DefaultDispatcher-worker-4,5,main]
+```
 
 ### 15.7 Creating Infinite Sequences <a name="creating_infinite_sequence"></a>
 
 ### 15. 8 Wrapping Up <a name="wrapping_up"></a>
 
 
+My questions:
+- When a coroutine is suspended, how is it decided which is the most important next job that has to run?
+
+### extra sources not mentioned yet:
+
+https://www.youtube.com/watch?v=YrrUCSi72E8
 
 https://medium.com/swlh/everything-you-need-to-know-about-kotlin-coroutines-b3d94f2bc982#id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6Ijc3NDU3MzIxOGM2ZjZhMmZlNTBlMjlhY2JjNjg2NDMyODYzZmM5YzMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYmYiOjE2MTgxNTcxNTAsImF1ZCI6IjIxNjI5NjAzNTgzNC1rMWs2cWUwNjBzMnRwMmEyamFtNGxqZGNtczAwc3R0Zy5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMDg3ODU5OTA5NzUwNDQyNDcwOSIsImVtYWlsIjoibWF0eWFzbWlrbG9zQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhenAiOiIyMTYyOTYwMzU4MzQtazFrNnFlMDYwczJ0cDJhMmphbTRsamRjbXMwMHN0dGcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJuYW1lIjoiTWF0eWFzIE1pa2xvcyIsInBpY3R1cmUiOiJodHRwczovL2xoNC5nb29nbGV1c2VyY29udGVudC5jb20vLS1yb0Zna19MMkx3L0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FNWnV1Y25iSGJFT25ETWlMMExnVENYQXVPc0dMTFp1S2cvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Ik1hdHlhcyIsImZhbWlseV9uYW1lIjoiTWlrbG9zIiwiaWF0IjoxNjE4MTU3NDUwLCJleHAiOjE2MTgxNjEwNTAsImp0aSI6ImE0YTdiOWU3M2JhNTQ2M2NiMjVmZGQ0M2E1NmQ2MzY0NWQ0NWNiNjcifQ.ACOBMhHLNHVROvI0xGbXWQ2RmPkXbUAF9UupCaJVi1WYz_E3JdZdTVW1HHnEgdDFpr-tLEN3BGVh_nhHhHjkzIjvZqXr3Ib-UXB-RuoBpvRDh4dChloaJVkcn4fZPK4VdnCY0emUcds93W0MJ0U802pcT0hmHdxvALM5fJV7hy-Dpxb8yFvRnjNE0zR-843drZ18Z2g3rbxWp3Dv9eUpEW4Bq5IBN7QkcGw2p4SOvMBn_whFLYs1bxUsf67CqUr6jikEfSiqrX_Xku0cGX3e37aSMy53HHYNyRrZMtz3hhgU2LmIfjBqpIRo7mI4ZhsPhYupauBgLwbXrBKg8CYxIA
